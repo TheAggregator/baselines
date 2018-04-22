@@ -168,12 +168,14 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
     nbatch = nenvs * nsteps
     nbatch_train = nbatch // nminibatches
 
+    starting_checkpoint = 0
     if load_existing and save_interval and logger.get_dir():
         import pickle
         pkl_path = osp.join(logger.get_dir(), 'make_model.pkl')
         checkpoint_dir = osp.join(logger.get_dir(), 'checkpoints')
 
-        weights_filename = max([int(x) for x in list(checkpoint_dir)])
+        weights_filename = max([int(x) for x in os.listdir(checkpoint_dir)])
+        starting_checkpoint = weights_filename + 1
         load_path = osp.join(checkpoint_dir, weights_filename)
 
         make_model = pickle.load(pkl_path).load(load_path)
@@ -249,7 +251,8 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
         if save_interval and (update % save_interval == 0 or update == 1) and logger.get_dir():
             checkdir = osp.join(logger.get_dir(), 'checkpoints')
             os.makedirs(checkdir, exist_ok=True)
-            savepath = osp.join(checkdir, '%.5i'%update)
+            update_num = update + starting_checkpoint
+            savepath = osp.join(checkdir, '%.5i'%update_num)
             print('Saving to', savepath)
             model.save(savepath)
     env.close()
