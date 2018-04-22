@@ -154,7 +154,7 @@ def constfn(val):
 def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
             vf_coef=0.5,  max_grad_norm=0.5, gamma=0.99, lam=0.95,
             log_interval=10, nminibatches=4, noptepochs=4, cliprange=0.2,
-            save_interval=0):
+            load_existing=False, save_interval=0):
 
     if isinstance(lr, float): lr = constfn(lr)
     else: assert callable(lr)
@@ -168,13 +168,26 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
     nbatch = nenvs * nsteps
     nbatch_train = nbatch // nminibatches
 
-    make_model = lambda : Model(policy=policy, ob_space=ob_space, ac_space=ac_space, nbatch_act=nenvs, nbatch_train=nbatch_train,
-                    nsteps=nsteps, ent_coef=ent_coef, vf_coef=vf_coef,
-                    max_grad_norm=max_grad_norm)
-    if save_interval and logger.get_dir():
-        import cloudpickle
-        with open(osp.join(logger.get_dir(), 'make_model.pkl'), 'wb') as fh:
-            fh.write(cloudpickle.dumps(make_model))
+    if load_existing and save_interval and logger.get_dir():
+        import pickle
+        pkl_path = osp.join(logger.get_dir(), 'make_model.pkl')
+        checkpoint_dir = osp.join(logger.get_dir(), 'checkpoints')
+
+        weights_filename = max([int(x) for x in list(checkpoint_dir)])
+        load_path = osp.join(checkpoint_dir, weights_filename)
+
+        make_model = pickle.load(pkl_path).load(load_path)
+
+    else:
+        make_model = lambda : Model(policy=policy, ob_space=ob_space, ac_space=ac_space, nbatch_act=nenvs, nbatch_train=nbatch_train,
+                        nsteps=nsteps, ent_coef=ent_coef, vf_coef=vf_coef,
+                        max_grad_norm=max_grad_norm)
+
+        if save_interval and logger.get_dir():
+            import cloudpickle
+            with open(osp.join(logger.get_dir(), 'make_model.pkl'), 'wb') as fh:
+                fh.write(cloudpickle.dumps(make_model))
+
     model = make_model()
     runner = Runner(env=env, model=model, nsteps=nsteps, gamma=gamma, lam=lam)
 
