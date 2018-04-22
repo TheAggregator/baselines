@@ -178,8 +178,10 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
         starting_checkpoint = latest_checkpoint + 1
         load_path = osp.join(checkpoint_dir, str(latest_checkpoint).zfill(5))
 
-        model = pickle.load(pkl_handler)().load(load_path)
+        model = pickle.load(pkl_handler)()
         pkl_handler.close()
+
+        model.load(load_path)
 
     else:
         make_model = lambda : Model(policy=policy, ob_space=ob_space, ac_space=ac_space, nbatch_act=nenvs, nbatch_train=nbatch_train,
