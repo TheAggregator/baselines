@@ -171,14 +171,15 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
     starting_checkpoint = 0
     if load_existing and save_interval and logger.get_dir():
         import pickle
-        pkl_path = osp.join(logger.get_dir(), 'make_model.pkl')
+        pkl_handler = open(osp.join(logger.get_dir(), 'make_model.pkl'), "rb")
         checkpoint_dir = osp.join(logger.get_dir(), 'checkpoints')
 
         latest_checkpoint = max([int(x) for x in os.listdir(checkpoint_dir)])
         starting_checkpoint = latest_checkpoint + 1
         load_path = osp.join(checkpoint_dir, str(latest_checkpoint).zfill(5))
 
-        make_model = pickle.load(pkl_path).load(load_path)
+        make_model = pickle.load(pkl_handler).load(load_path)
+        pkl_handler.close()
 
     else:
         make_model = lambda : Model(policy=policy, ob_space=ob_space, ac_space=ac_space, nbatch_act=nenvs, nbatch_train=nbatch_train,
