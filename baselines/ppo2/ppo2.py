@@ -178,7 +178,7 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
         starting_checkpoint = latest_checkpoint + 1
         load_path = osp.join(checkpoint_dir, str(latest_checkpoint).zfill(5))
 
-        make_model = pickle.load(pkl_handler).load(load_path)
+        model = pickle.load(pkl_handler)().load(load_path)
         pkl_handler.close()
 
     else:
@@ -191,7 +191,8 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
             with open(osp.join(logger.get_dir(), 'make_model.pkl'), 'wb') as fh:
                 fh.write(cloudpickle.dumps(make_model))
 
-    model = make_model()
+        model = make_model()
+
     runner = Runner(env=env, model=model, nsteps=nsteps, gamma=gamma, lam=lam)
 
     epinfobuf = deque(maxlen=100)
