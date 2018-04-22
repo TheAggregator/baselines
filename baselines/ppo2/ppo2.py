@@ -174,9 +174,9 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
         pkl_path = osp.join(logger.get_dir(), 'make_model.pkl')
         checkpoint_dir = osp.join(logger.get_dir(), 'checkpoints')
 
-        weights_filename = max([int(x) for x in os.listdir(checkpoint_dir)])
-        starting_checkpoint = weights_filename + 1
-        load_path = osp.join(checkpoint_dir, weights_filename)
+        latest_checkpoint = max([int(x) for x in os.listdir(checkpoint_dir)])
+        starting_checkpoint = latest_checkpoint + 1
+        load_path = osp.join(checkpoint_dir, str(latest_checkpoint).zfill(5))
 
         make_model = pickle.load(pkl_path).load(load_path)
 
