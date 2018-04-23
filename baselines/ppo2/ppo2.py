@@ -86,7 +86,7 @@ class Model(object):
 
 class Runner(object):
 
-    def __init__(self, *, env, model, nsteps, gamma, lam):
+    def __init__(self, *, env, model, nsteps, gamma, lam, render=False):
         self.env = env
         self.model = model
         nenv = env.num_envs
@@ -97,6 +97,7 @@ class Runner(object):
         self.nsteps = nsteps
         self.states = model.initial_state
         self.dones = [False for _ in range(nenv)]
+        self.render = render
 
     def run(self):
         mb_obs, mb_rewards, mb_actions, mb_values, mb_dones, mb_neglogpacs = [],[],[],[],[],[]
@@ -110,6 +111,8 @@ class Runner(object):
             mb_neglogpacs.append(neglogpacs)
             mb_dones.append(self.dones)
             self.obs[:], rewards, self.dones, infos = self.env.step(actions)
+            if self.render:
+                self.env.render()
             for info in infos:
                 maybeepinfo = info.get('episode')
                 if maybeepinfo: epinfos.append(maybeepinfo)
@@ -154,7 +157,7 @@ def constfn(val):
 def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
             vf_coef=0.5,  max_grad_norm=0.5, gamma=0.99, lam=0.95,
             log_interval=10, nminibatches=4, noptepochs=4, cliprange=0.2,
-            load_existing=False, save_interval=0):
+            load_existing=False, render=False, save_interval=0):
 
     if isinstance(lr, float): lr = constfn(lr)
     else: assert callable(lr)
@@ -195,7 +198,7 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
 
         model = make_model()
 
-    runner = Runner(env=env, model=model, nsteps=nsteps, gamma=gamma, lam=lam)
+    runner = Runner(env=env, model=model, nsteps=nsteps, gamma=gamma, lam=lam, render=render)
 
     epinfobuf = deque(maxlen=100)
     tfirststart = time.time()
