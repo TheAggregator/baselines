@@ -112,7 +112,7 @@ class Runner(object):
             mb_dones.append(self.dones)
             self.obs[:], rewards, self.dones, infos = self.env.step(actions)
             if self.render:
-                self.env.render()
+                self.env.envs[0].render()
             for info in infos:
                 maybeepinfo = info.get('episode')
                 if maybeepinfo: epinfos.append(maybeepinfo)
