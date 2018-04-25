@@ -79,7 +79,7 @@ class Model(object):
             saver.save(sess, save_path)
 
         def load(load_path):
-            saver = tf.train.import_meta_graph(f"{load_path}.meta")
+            saver = tf.train.import_meta_graph(str(load_path)+".meta")
             saver.restore(sess, load_path)
 
         self.train = train
