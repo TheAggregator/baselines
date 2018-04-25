@@ -62,17 +62,25 @@ class Model(object):
             )[:-1]
         self.loss_names = ['policy_loss', 'value_loss', 'policy_entropy', 'approxkl', 'clipfrac']
 
+        # def save(save_path):
+        #     ps = sess.run(params)
+        #     joblib.dump(ps, save_path)
+        #
+        # def load(load_path):
+        #     loaded_params = joblib.load(load_path)
+        #     restores = []
+        #     for p, loaded_p in zip(params, loaded_params):
+        #         restores.append(p.assign(loaded_p))
+        #     sess.run(restores)
+        #     # If you want to load weights, also save/load observation scaling inside VecNormalize
+
         def save(save_path):
-            ps = sess.run(params)
-            joblib.dump(ps, save_path)
+            saver = tf.train.Saver()
+            saver.save(sess, save_path)
 
         def load(load_path):
-            loaded_params = joblib.load(load_path)
-            restores = []
-            for p, loaded_p in zip(params, loaded_params):
-                restores.append(p.assign(loaded_p))
-            sess.run(restores)
-            # If you want to load weights, also save/load observation scaling inside VecNormalize
+            saver = tf.train.import_meta_graph(f"{load_path}.meta")
+            saver.restore(sess, load_path)
 
         self.train = train
         self.train_model = train_model
@@ -173,16 +181,16 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
 
     starting_checkpoint = 0
     if load_existing and save_interval and logger.get_dir():
-        import pickle
-        pkl_handler = open(osp.join(logger.get_dir(), 'make_model.pkl'), "rb")
+        # import pickle
+        # pkl_handler = open(osp.join(logger.get_dir(), 'make_model.pkl'), "rb")
         checkpoint_dir = osp.join(logger.get_dir(), 'checkpoints')
 
-        latest_checkpoint = max([int(x) for x in os.listdir(checkpoint_dir)])
-        starting_checkpoint = latest_checkpoint + 1
+        latest_checkpoint = max([int(x) for x in os.listdir(checkpoint_dir) if x.endswith('.meta')])
         load_path = osp.join(checkpoint_dir, str(latest_checkpoint).zfill(5))
 
-        model = pickle.load(pkl_handler)()
-        pkl_handler.close()
+        # model = pickle.load(pkl_handler)()
+        # pkl_handler.close()
+
 
         model.load(load_path)
 
@@ -191,10 +199,10 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
                         nsteps=nsteps, ent_coef=ent_coef, vf_coef=vf_coef,
                         max_grad_norm=max_grad_norm)
 
-        if save_interval and logger.get_dir():
-            import cloudpickle
-            with open(osp.join(logger.get_dir(), 'make_model.pkl'), 'wb') as fh:
-                fh.write(cloudpickle.dumps(make_model))
+        # if save_interval and logger.get_dir():
+        #     import cloudpickle
+        #     with open(osp.join(logger.get_dir(), 'make_model.pkl'), 'wb') as fh:
+        #         fh.write(cloudpickle.dumps(make_model))
 
         model = make_model()
 
