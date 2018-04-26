@@ -180,7 +180,8 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
     nbatch_train = nbatch // nminibatches
 
     starting_checkpoint = 0
-    if load_existing and save_interval and logger.get_dir():
+    if load_existing and logger.get_dir():
+        print("Loading existing model...")
         # import pickle
         # pkl_handler = open(osp.join(logger.get_dir(), 'make_model.pkl'), "rb")
         checkpoint_dir = osp.join(logger.get_dir(), 'checkpoints')
