@@ -200,6 +200,7 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
 
 
         model.load(load_path)
+        print("Loaded from " + str(load_path))
 
     # else:
         # make_model = lambda : Model(policy=policy, ob_space=ob_space, ac_space=ac_space, nbatch_act=nenvs, nbatch_train=nbatch_train,
