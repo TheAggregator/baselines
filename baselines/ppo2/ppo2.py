@@ -201,7 +201,7 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
 
         model.load(load_path)
 
-    else:
+    # else:
         # make_model = lambda : Model(policy=policy, ob_space=ob_space, ac_space=ac_space, nbatch_act=nenvs, nbatch_train=nbatch_train,
         #                 nsteps=nsteps, ent_coef=ent_coef, vf_coef=vf_coef,
         #                 max_grad_norm=max_grad_norm)
