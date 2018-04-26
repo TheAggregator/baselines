@@ -180,6 +180,11 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
     nbatch_train = nbatch // nminibatches
 
     starting_checkpoint = 0
+    make_model = lambda : Model(policy=policy, ob_space=ob_space, ac_space=ac_space, nbatch_act=nenvs, nbatch_train=nbatch_train,
+                    nsteps=nsteps, ent_coef=ent_coef, vf_coef=vf_coef,
+                    max_grad_norm=max_grad_norm)
+    model = make_model()
+
     if load_existing and logger.get_dir():
         print("Loading existing model...")
         # import pickle
@@ -190,22 +195,23 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
         load_path = osp.join(checkpoint_dir, str(latest_checkpoint).zfill(5))
 
         # model = pickle.load(pkl_handler)()
+        # model = make_model()
         # pkl_handler.close()
 
 
         model.load(load_path)
 
     else:
-        make_model = lambda : Model(policy=policy, ob_space=ob_space, ac_space=ac_space, nbatch_act=nenvs, nbatch_train=nbatch_train,
-                        nsteps=nsteps, ent_coef=ent_coef, vf_coef=vf_coef,
-                        max_grad_norm=max_grad_norm)
+        # make_model = lambda : Model(policy=policy, ob_space=ob_space, ac_space=ac_space, nbatch_act=nenvs, nbatch_train=nbatch_train,
+        #                 nsteps=nsteps, ent_coef=ent_coef, vf_coef=vf_coef,
+        #                 max_grad_norm=max_grad_norm)
 
         # if save_interval and logger.get_dir():
         #     import cloudpickle
         #     with open(osp.join(logger.get_dir(), 'make_model.pkl'), 'wb') as fh:
         #         fh.write(cloudpickle.dumps(make_model))
 
-        model = make_model()
+        # model = make_model()
 
     runner = Runner(env=env, model=model, nsteps=nsteps, gamma=gamma, lam=lam, render=render)
 
