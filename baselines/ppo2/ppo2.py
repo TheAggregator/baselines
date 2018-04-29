@@ -178,9 +178,8 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
         pkl_handler = open(osp.join(logger.get_dir(), 'make_model.pkl'), "rb")
         checkpoint_dir = osp.join(logger.get_dir(), 'checkpoints')
 
-        latest_checkpoint = max([int(x) for x in os.listdir(checkpoint_dir)])
-        starting_checkpoint = latest_checkpoint + 1
-        load_path = osp.join(checkpoint_dir, str(latest_checkpoint).zfill(5))
+        starting_checkpoint = max([int(x) for x in os.listdir(checkpoint_dir)])
+        load_path = osp.join(checkpoint_dir, str(starting_checkpoint).zfill(5))
 
         model = pickle.load(pkl_handler)()
         pkl_handler.close()
@@ -206,7 +205,9 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
     tfirststart = time.time()
 
     nupdates = total_timesteps//nbatch
-    for update in range(1, nupdates+1):
+    initial_update = 1
+    final_update = nupdates + 1
+    for update in range(initial_update, final_update):
         assert nbatch % nminibatches == 0
         nbatch_train = nbatch // nminibatches
         tstart = time.time()
@@ -244,7 +245,7 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
         lossvals = np.mean(mblossvals, axis=0)
         tnow = time.time()
         fps = int(nbatch / (tnow - tstart))
-        if update % log_interval == 0 or update == 1:
+        if update % log_interval == 0 or update == initial_update or update == final_update:
             ev = explained_variance(values, returns)
             logger.logkv("serial_timesteps", update*nsteps)
             logger.logkv("nupdates", update)
@@ -257,7 +258,7 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
             for (lossval, lossname) in zip(lossvals, model.loss_names):
                 logger.logkv(lossname, lossval)
             logger.dumpkvs()
-        if save_interval and (update % save_interval == 0 or update == 1) and logger.get_dir():
+        if save_interval and (update % save_interval == 0 or update == initial_update or update == final_update) and logger.get_dir():
             checkdir = osp.join(logger.get_dir(), 'checkpoints')
             os.makedirs(checkdir, exist_ok=True)
             update_num = update + starting_checkpoint
