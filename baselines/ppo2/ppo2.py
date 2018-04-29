@@ -258,7 +258,7 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
             for (lossval, lossname) in zip(lossvals, model.loss_names):
                 logger.logkv(lossname, lossval)
             logger.dumpkvs()
-        if save_interval and (update % save_interval == 0 or update == initial_update or update == final_update) and logger.get_dir():
+        if save_interval and (update % save_interval == 0 or update == final_update) and logger.get_dir():
             checkdir = osp.join(logger.get_dir(), 'checkpoints')
             os.makedirs(checkdir, exist_ok=True)
             update_num = update + starting_checkpoint
