@@ -22,8 +22,8 @@ def resnet_cnn(unscaled_images):
     scaled_images = tf.cast(unscaled_images, tf.float32) / 255.
     activ = tf.nn.relu
     r1_1 = activ(conv(scaled_images, 'r1_1', nf=32, rf=8, stride=1, init_scale=np.sqrt(2)))
-    r1_2 = activ(conv(h1, 'r1_2', nf=32, rf=8, stride=1, init_scale=np.sqrt(2)))
-    r1_3 = activ(conv(tf.concat(3, [h1, h2]), 'r1_3', nf=32, rf=8, stride=4, init_scale=np.sqrt(2)))
+    r1_2 = activ(conv(r1_1, 'r1_2', nf=32, rf=8, stride=1, init_scale=np.sqrt(2)))
+    r1_3 = activ(conv(tf.concat(3, [r1_1, r1_2]), 'r1_3', nf=32, rf=8, stride=4, init_scale=np.sqrt(2)))
 
     r2_1 = activ(conv(r1_3, 'r2_1', nf=64, rf=4, stride=1, init_scale=np.sqrt(2)))
     r2_2 = activ(conv(r2_1, 'r2_2', nf=64, rf=4, stride=1, init_scale=np.sqrt(2)))
