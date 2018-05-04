@@ -109,14 +109,14 @@ class Runner(object):
     def __init__(self, *, env, model, nsteps, gamma, lam, render=False):
         self.env = env
         self.model = model
-        nenv = env.num_envs
-        self.obs = np.zeros((nenv,) + env.observation_space.shape, dtype=model.train_model.X.dtype.name)
+        self.nenv = env.num_envs
+        self.obs = np.zeros((self.nenv,) + env.observation_space.shape, dtype=model.train_model.X.dtype.name)
         self.obs[:] = env.reset()
         self.gamma = gamma
         self.lam = lam
         self.nsteps = nsteps
         self.states = model.initial_state
-        self.dones = [False for _ in range(nenv)]
+        self.dones = [False for _ in range(self.nenv)]
         self.render = render
 
     def run(self):
