@@ -64,6 +64,7 @@ class SubprocVecEnv(VecEnv):
         print("Resetting environments...")
         for remote in self.remotes:
             remote.send(('reset', None))
+        print("Reset sent...")
         ret_stack = np.stack([remote.recv() for remote in self.remotes])
         print("Environments reset")
         return ret_stack
@@ -77,7 +78,7 @@ class SubprocVecEnv(VecEnv):
         if self.closed:
             return
         if self.waiting:
-            for remote in self.remotes:            
+            for remote in self.remotes:
                 remote.recv()
         for remote in self.remotes:
             remote.send(('close', None))
