@@ -17,7 +17,7 @@ class Model(object):
         act_model_single_env = policy(sess, ob_space, ac_space, 1, 1, reuse=False)
         train_model_single_env = policy(sess, ob_space, ac_space, nbatch_train // nbatch_act, nsteps, reuse=True)
 
-        act_model = policy(sess, ob_space, ac_space, nbatch_act, 1, reuse=False)
+        act_model = policy(sess, ob_space, ac_space, nbatch_act, 1, reuse=True)
         train_model = policy(sess, ob_space, ac_space, nbatch_train, nsteps, reuse=True)
 
         A = train_model.pdtype.sample_placeholder([None])
