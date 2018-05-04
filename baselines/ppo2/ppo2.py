@@ -87,7 +87,6 @@ class Model(object):
 class Runner(object):
 
     def __init__(self, *, env, model, nsteps, gamma, lam, render=False):
-        print("Runner initializing...")
         self.env = env
         self.model = model
         nenv = env.num_envs
@@ -99,7 +98,6 @@ class Runner(object):
         self.states = model.initial_state
         self.dones = [False for _ in range(nenv)]
         self.render = render
-        print("Runner initialized")
 
     def run(self):
         mb_obs, mb_rewards, mb_actions, mb_values, mb_dones, mb_neglogpacs = [],[],[],[],[],[]
@@ -224,7 +222,6 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
         epinfobuf.extend(epinfos)
         mblossvals = []
         if states is None: # nonrecurrent version
-            print("Nonrecurrent version")
             inds = np.arange(nbatch)
             for _ in range(noptepochs):
                 np.random.shuffle(inds)
@@ -232,11 +229,8 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
                     end = start + nbatch_train
                     mbinds = inds[start:end]
                     slices = (arr[mbinds] for arr in (obs, returns, masks, actions, values, neglogpacs))
-                    print("Training model...")
                     mblossvals.append(model.train(lrnow, cliprangenow, *slices))
-                    print("Model Trained successfully...")
         else: # recurrent version
-            print("Recurrent version")
             assert nenvs % nminibatches == 0
             envsperbatch = nenvs // nminibatches
             envinds = np.arange(nenvs)
@@ -250,14 +244,11 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
                     mbflatinds = flatinds[mbenvinds].ravel()
                     slices = (arr[mbflatinds] for arr in (obs, returns, masks, actions, values, neglogpacs))
                     mbstates = states[mbenvinds]
-                    print("Training model...")
                     mblossvals.append(model.train(lrnow, cliprangenow, *slices, mbstates))
-                    print("Model Trained successfully...")
 
         lossvals = np.mean(mblossvals, axis=0)
         tnow = time.time()
         fps = int(nbatch / (tnow - tstart))
-        print("Successfull iteration!!!")
         if update % log_interval == 0 or update == initial_update or update == final_update:
             ev = explained_variance(values, returns)
             logger.logkv("serial_timesteps", update*nsteps)

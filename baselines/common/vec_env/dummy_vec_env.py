@@ -4,12 +4,9 @@ from . import VecEnv
 
 class DummyVecEnv(VecEnv):
     def __init__(self, env_fns):
-        print("Initializing...")
         self.envs = [fn() for fn in env_fns]
-        print("Environments created...")
         env = self.envs[0]
         VecEnv.__init__(self, len(env_fns), env.observation_space, env.action_space)
-        print("DummyVec init supered...")
 
         obs_spaces = self.observation_space.spaces if isinstance(self.observation_space, gym.spaces.Tuple) else (self.observation_space,)
         self.buf_obs = [np.zeros((self.num_envs,) + tuple(s.shape), s.dtype) for s in obs_spaces]
@@ -17,7 +14,6 @@ class DummyVecEnv(VecEnv):
         self.buf_rews  = np.zeros((self.num_envs,), dtype=np.float32)
         self.buf_infos = [{} for _ in range(self.num_envs)]
         self.actions = None
-        print("DummyVec initialized")
 
     def step_async(self, actions):
         self.actions = actions
