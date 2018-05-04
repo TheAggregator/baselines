@@ -188,6 +188,7 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
         print("Loaded model from" + str(load_path))
 
     else:
+        print("Creating new model...")
         make_model = lambda : Model(policy=policy, ob_space=ob_space, ac_space=ac_space, nbatch_act=nenvs, nbatch_train=nbatch_train,
                         nsteps=nsteps, ent_coef=ent_coef, vf_coef=vf_coef,
                         max_grad_norm=max_grad_norm)
@@ -198,6 +199,7 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
                 fh.write(cloudpickle.dumps(make_model))
 
         model = make_model()
+        print("Created new model at " + str(logger.get_dir()))
 
     runner = Runner(env=env, model=model, nsteps=nsteps, gamma=gamma, lam=lam, render=render)
 
