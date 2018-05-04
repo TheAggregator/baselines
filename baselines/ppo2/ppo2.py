@@ -87,6 +87,7 @@ class Model(object):
 class Runner(object):
 
     def __init__(self, *, env, model, nsteps, gamma, lam, render=False):
+        print("Runner initializing...")
         self.env = env
         self.model = model
         nenv = env.num_envs
@@ -98,6 +99,7 @@ class Runner(object):
         self.states = model.initial_state
         self.dones = [False for _ in range(nenv)]
         self.render = render
+        print("Runner initialized")
 
     def run(self):
         mb_obs, mb_rewards, mb_actions, mb_values, mb_dones, mb_neglogpacs = [],[],[],[],[],[]
