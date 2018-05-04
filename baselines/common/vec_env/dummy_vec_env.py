@@ -4,6 +4,7 @@ from . import VecEnv
 
 class DummyVecEnv(VecEnv):
     def __init__(self, env_fns):
+        print("Initializing...")
         self.envs = [fn() for fn in env_fns]
         print("Environments created...")
         env = self.envs[0]
