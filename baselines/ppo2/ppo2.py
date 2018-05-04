@@ -13,6 +13,10 @@ class Model(object):
                 nsteps, ent_coef, vf_coef, max_grad_norm):
         sess = tf.get_default_session()
 
+
+        act_model_single_env = policy(sess, ob_space, ac_space, 1, 1, reuse=False)
+        train_model_single_env = policy(sess, ob_space, ac_space, nbatch_train/nbatch_act, nsteps, reuse=True)
+
         act_model = policy(sess, ob_space, ac_space, nbatch_act, 1, reuse=False)
         train_model = policy(sess, ob_space, ac_space, nbatch_train, nsteps, reuse=True)
 
@@ -60,6 +64,20 @@ class Model(object):
                 [pg_loss, vf_loss, entropy, approxkl, clipfrac, _train],
                 td_map
             )[:-1]
+
+        def train_single_env(lr, cliprange, obs, returns, masks, actions, values, neglogpacs, states=None):
+            advs = returns - values
+            advs = (advs - advs.mean()) / (advs.std() + 1e-8)
+            td_map = {train_model_single_env.X:obs, A:actions, ADV:advs, R:returns, LR:lr,
+                    CLIPRANGE:cliprange, OLDNEGLOGPAC:neglogpacs, OLDVPRED:values}
+            if states is not None:
+                td_map[train_model_single_env.S] = states
+                td_map[train_model_single_env.M] = masks
+            return sess.run(
+                [pg_loss, vf_loss, entropy, approxkl, clipfrac, _train],
+                td_map
+            )[:-1]
+
         self.loss_names = ['policy_loss', 'value_loss', 'policy_entropy', 'approxkl', 'clipfrac']
 
         def save(save_path):
@@ -72,12 +90,14 @@ class Model(object):
             for p, loaded_p in zip(params, loaded_params):
                 restores.append(p.assign(loaded_p))
             sess.run(restores)
-            # If you want to load weights, also save/load observation scaling inside VecNormalize
 
         self.train = train
+        # self.train_single_env = train_single_env
         self.train_model = train_model
+        self.train_model_single_env = train_model_single_env
         self.act_model = act_model
         self.step = act_model.step
+        self.step_single_env = act_model_single_env.step
         self.value = act_model.value
         self.initial_state = act_model.initial_state
         self.save = save
@@ -104,7 +124,10 @@ class Runner(object):
         mb_states = self.states
         epinfos = []
         for _ in range(self.nsteps):
-            actions, values, self.states, neglogpacs = self.model.step(self.obs, self.states, self.dones)
+            if self.nenv == 1:
+                actions, values, self.states, neglogpacs = self.model.step_single_env(self.obs, self.states, self.dones)
+            else:
+                actions, values, self.states, neglogpacs = self.model.step(self.obs, self.states, self.dones)
             mb_obs.append(self.obs.copy())
             mb_actions.append(actions)
             mb_values.append(values)
@@ -229,7 +252,10 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
                     end = start + nbatch_train
                     mbinds = inds[start:end]
                     slices = (arr[mbinds] for arr in (obs, returns, masks, actions, values, neglogpacs))
-                    mblossvals.append(model.train(lrnow, cliprangenow, *slices))
+                    if nenvs == 1:
+                        mblossvals.append(model.train_single_env(lrnow, cliprangenow, *slices))
+                    else:
+                        mblossvals.append(model.train(lrnow, cliprangenow, *slices))
         else: # recurrent version
             assert nenvs % nminibatches == 0
             envsperbatch = nenvs // nminibatches
