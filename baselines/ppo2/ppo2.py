@@ -207,6 +207,8 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
     nupdates = total_timesteps//nbatch
     initial_update = 1
     final_update = nupdates + 1
+
+    print("Beginning updates/Running model")
     for update in range(initial_update, final_update):
         assert nbatch % nminibatches == 0
         nbatch_train = nbatch // nminibatches
@@ -218,6 +220,7 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
         epinfobuf.extend(epinfos)
         mblossvals = []
         if states is None: # nonrecurrent version
+            print("Nonrecurrent version")
             inds = np.arange(nbatch)
             for _ in range(noptepochs):
                 np.random.shuffle(inds)
@@ -225,8 +228,11 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
                     end = start + nbatch_train
                     mbinds = inds[start:end]
                     slices = (arr[mbinds] for arr in (obs, returns, masks, actions, values, neglogpacs))
+                    print("Training model...")
                     mblossvals.append(model.train(lrnow, cliprangenow, *slices))
+                    print("Model Trained successfully...")
         else: # recurrent version
+            print("Recurrent version")
             assert nenvs % nminibatches == 0
             envsperbatch = nenvs // nminibatches
             envinds = np.arange(nenvs)
@@ -240,11 +246,14 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
                     mbflatinds = flatinds[mbenvinds].ravel()
                     slices = (arr[mbflatinds] for arr in (obs, returns, masks, actions, values, neglogpacs))
                     mbstates = states[mbenvinds]
+                    print("Training model...")
                     mblossvals.append(model.train(lrnow, cliprangenow, *slices, mbstates))
+                    print("Model Trained successfully...")
 
         lossvals = np.mean(mblossvals, axis=0)
         tnow = time.time()
         fps = int(nbatch / (tnow - tstart))
+        print("Successfull iteration!!!")
         if update % log_interval == 0 or update == initial_update or update == final_update:
             ev = explained_variance(values, returns)
             logger.logkv("serial_timesteps", update*nsteps)
