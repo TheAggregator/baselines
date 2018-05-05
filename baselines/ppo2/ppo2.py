@@ -15,7 +15,6 @@ class Model(object):
 
 
         act_model_single_env = policy(sess, ob_space, ac_space, 1, 1, reuse=False)
-        train_model_single_env = policy(sess, ob_space, ac_space, nbatch_train // nbatch_act, nsteps, reuse=True)
 
         act_model = policy(sess, ob_space, ac_space, nbatch_act, 1, reuse=True)
         train_model = policy(sess, ob_space, ac_space, nbatch_train, nsteps, reuse=True)
@@ -65,19 +64,6 @@ class Model(object):
                 td_map
             )[:-1]
 
-        def train_single_env(lr, cliprange, obs, returns, masks, actions, values, neglogpacs, states=None):
-            advs = returns - values
-            advs = (advs - advs.mean()) / (advs.std() + 1e-8)
-            td_map = {train_model_single_env.X:obs, A:actions, ADV:advs, R:returns, LR:lr,
-                    CLIPRANGE:cliprange, OLDNEGLOGPAC:neglogpacs, OLDVPRED:values}
-            if states is not None:
-                td_map[train_model_single_env.S] = states
-                td_map[train_model_single_env.M] = masks
-            return sess.run(
-                [pg_loss, vf_loss, entropy, approxkl, clipfrac, _train],
-                td_map
-            )[:-1]
-
         self.loss_names = ['policy_loss', 'value_loss', 'policy_entropy', 'approxkl', 'clipfrac']
 
         def save(save_path):
@@ -92,9 +78,7 @@ class Model(object):
             sess.run(restores)
 
         self.train = train
-        self.train_single_env = train_single_env
         self.train_model = train_model
-        self.train_model_single_env = train_model_single_env
         self.act_model = act_model
         self.step = act_model.step
         self.step_single_env = act_model_single_env.step
@@ -256,9 +240,6 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
                     end = start + nbatch_train
                     mbinds = inds[start:end]
                     slices = (arr[mbinds] for arr in (obs, returns, masks, actions, values, neglogpacs))
-                    # if nenvs == 1:
-                    #     mblossvals.append(model.train_single_env(lrnow, cliprangenow, *slices))
-                    # else:
                     mblossvals.append(model.train(lrnow, cliprangenow, *slices))
         else: # recurrent version
             assert nenvs % nminibatches == 0
@@ -274,9 +255,6 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
                     mbflatinds = flatinds[mbenvinds].ravel()
                     slices = (arr[mbflatinds] for arr in (obs, returns, masks, actions, values, neglogpacs))
                     mbstates = states[mbenvinds]
-                    # if nenvs == 1:
-                    #     mblossvals.append(model.train_single_env(lrnow, cliprangenow, *slices, mbstates))
-                    # else:
                     mblossvals.append(model.train(lrnow, cliprangenow, *slices, mbstates))
 
         lossvals = np.mean(mblossvals, axis=0)
