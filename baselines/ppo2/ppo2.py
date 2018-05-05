@@ -99,6 +99,7 @@ class Model(object):
         self.step = act_model.step
         self.step_single_env = act_model_single_env.step
         self.value = act_model.value
+        self.value_single_env = act_model_single_env.value
         self.initial_state = act_model.initial_state
         self.save = save
         self.load = load
@@ -149,7 +150,10 @@ class Runner(object):
         mb_values = np.asarray(mb_values, dtype=np.float32)
         mb_neglogpacs = np.asarray(mb_neglogpacs, dtype=np.float32)
         mb_dones = np.asarray(mb_dones, dtype=np.bool)
-        last_values = self.model.value(self.obs, self.states, self.dones)
+        if self.nenv == 1:
+            last_values = self.model.value_single_env(self.obs, self.states, self.dones)
+        else:
+            last_values = self.model.value(self.obs, self.states, self.dones)
         #discount/bootstrap off value fn
         mb_returns = np.zeros_like(mb_rewards)
         mb_advs = np.zeros_like(mb_rewards)
