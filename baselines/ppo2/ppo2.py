@@ -92,7 +92,7 @@ class Model(object):
             sess.run(restores)
 
         self.train = train
-        # self.train_single_env = train_single_env
+        self.train_single_env = train_single_env
         self.train_model = train_model
         self.train_model_single_env = train_model_single_env
         self.act_model = act_model
@@ -126,10 +126,8 @@ class Runner(object):
         epinfos = []
         for _ in range(self.nsteps):
             if self.nenv == 1:
-                print("Running for single env...")
                 actions, values, self.states, neglogpacs = self.model.step_single_env(self.obs, self.states, self.dones)
             else:
-                print("Running for multi env...")
                 actions, values, self.states, neglogpacs = self.model.step(self.obs, self.states, self.dones)
             mb_obs.append(self.obs.copy())
             mb_actions.append(actions)
@@ -199,7 +197,6 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
     ac_space = env.action_space
     nbatch = nenvs * nsteps
     nbatch_train = nbatch // nminibatches
-    print("nenvs = " + str(env.num_envs))
 
     starting_checkpoint = 0
     if load_existing and logger.get_dir():
@@ -252,7 +249,6 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
         epinfobuf.extend(epinfos)
         mblossvals = []
         if states is None: # nonrecurrent version
-            print("NONRECURRENT VERSION")
             inds = np.arange(nbatch)
             for _ in range(noptepochs):
                 np.random.shuffle(inds)
@@ -265,7 +261,6 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
                     else:
                         mblossvals.append(model.train(lrnow, cliprangenow, *slices))
         else: # recurrent version
-            print("RECURRENT VERSION")
             assert nenvs % nminibatches == 0
             envsperbatch = nenvs // nminibatches
             envinds = np.arange(nenvs)
