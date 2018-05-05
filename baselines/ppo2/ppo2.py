@@ -15,7 +15,7 @@ class Model(object):
 
 
         act_model_single_env = policy(sess, ob_space, ac_space, 1, 1, reuse=False)
-        train_model_single_env = policy(sess, ob_space, ac_space, nbatch_train // nbatch_act, nsteps, reuse=True)
+        # train_model_single_env = policy(sess, ob_space, ac_space, nbatch_train // nbatch_act, nsteps, reuse=True)
 
         act_model = policy(sess, ob_space, ac_space, nbatch_act, 1, reuse=True)
         train_model = policy(sess, ob_space, ac_space, nbatch_train, nsteps, reuse=True)
@@ -256,10 +256,10 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
                     end = start + nbatch_train
                     mbinds = inds[start:end]
                     slices = (arr[mbinds] for arr in (obs, returns, masks, actions, values, neglogpacs))
-                    if nenvs == 1:
-                        mblossvals.append(model.train_single_env(lrnow, cliprangenow, *slices))
-                    else:
-                        mblossvals.append(model.train(lrnow, cliprangenow, *slices))
+                    # if nenvs == 1:
+                    #     mblossvals.append(model.train_single_env(lrnow, cliprangenow, *slices))
+                    # else:
+                    mblossvals.append(model.train(lrnow, cliprangenow, *slices))
         else: # recurrent version
             assert nenvs % nminibatches == 0
             envsperbatch = nenvs // nminibatches
@@ -274,10 +274,10 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
                     mbflatinds = flatinds[mbenvinds].ravel()
                     slices = (arr[mbflatinds] for arr in (obs, returns, masks, actions, values, neglogpacs))
                     mbstates = states[mbenvinds]
-                    if nenvs == 1:
-                        mblossvals.append(model.train_single_env(lrnow, cliprangenow, *slices, mbstates))
-                    else:
-                        mblossvals.append(model.train(lrnow, cliprangenow, *slices, mbstates))
+                    # if nenvs == 1:
+                    #     mblossvals.append(model.train_single_env(lrnow, cliprangenow, *slices, mbstates))
+                    # else:
+                    mblossvals.append(model.train(lrnow, cliprangenow, *slices, mbstates))
 
         lossvals = np.mean(mblossvals, axis=0)
         tnow = time.time()
