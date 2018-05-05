@@ -125,8 +125,10 @@ class Runner(object):
         epinfos = []
         for _ in range(self.nsteps):
             if self.nenv == 1:
+                print("Running for single env...")
                 actions, values, self.states, neglogpacs = self.model.step_single_env(self.obs, self.states, self.dones)
             else:
+                print("Running for multi env...")
                 actions, values, self.states, neglogpacs = self.model.step(self.obs, self.states, self.dones)
             mb_obs.append(self.obs.copy())
             mb_actions.append(actions)
@@ -193,6 +195,7 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
     ac_space = env.action_space
     nbatch = nenvs * nsteps
     nbatch_train = nbatch // nminibatches
+    print("nenvs = " + str(env.num_envs))
 
     starting_checkpoint = 0
     if load_existing and logger.get_dir():
